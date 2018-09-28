@@ -29,34 +29,40 @@ mta <- read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
   mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
 ```
 
-In the code above, I read in my file name using the read_csv function. I piped my result into the janitor package, which helps me clean up the names a bit. Then, I selected the variables we were interested in. We have the line, information about the station (it's name, latitude, and longitude), all of the routes served by the station, a logical variable that tells us whether there is an entrance or not (I'm not sure why there'd be any stations without an entrance, but I guess if there were this variable would tell us?), what the entrance type is (e.g. stairs, or terrifying elevator on 168th), and whether than entrance is ADA compliant. I had to coerce the entry variable to be logical, by using an ifelse statement. We have `r ncol(mta)` columns and `r nrow(mta)` rows in our tibble. This dataset is definitely not tidy, since we have a ton of rows with the different routes spread out in various columns. 
+In the code above, I read in my file name using the read_csv function. I piped my result into the janitor package, which helps me clean up the names a bit. Then, I selected the variables we were interested in. We have the line, information about the station (it's name, latitude, and longitude), all of the routes served by the station, a logical variable that tells us whether there is an entrance (as opposed to just an exit), what the entrance type is (e.g. stairs, or terrifying elevator on 168th), and whether than entrance is ADA compliant. I had to coerce the entry variable to be logical, by using an ifelse statement. We have `r ncol(mta)` columns and `r nrow(mta)` rows in our tibble. This dataset is definitely not tidy, since we have a ton of rows with the different routes spread out in various columns. 
 
 *"How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St A/B/C/D; 125st 1; 125st 4/5); the distinct function may be useful here."*
 
 ```{r}
-n_stations <- mta %>%
+mta %>%
   group_by(line, station_name) %>%
   n_distinct()
 ```
 
-We have `r n_stations` unique stations. 
+We have 684 unique stations. 
 
 
+*"How many stations are ADA compliant?"*
+```{r}
+mta %>% 
+  select(line, station_name, ada) %>%
+  group_by(line, station_name) %>%
+  filter(ada == TRUE) %>% 
+  n_distinct() 
+```
 
+Only 84 of those stations are ADA compliant. :(
 
+*"What proportion of station entrances / exits without vending allow entrance?"*"
 
+```{r}
+mta %>%
+  filter(vending == "NO") %>% 
+  select(line, station_name, entry) %>% 
+  distinct() %>% 
+  summarise(prop = mean(entry))
 
+```
 
+38.7% of all station etrances without a vending machine allow entrances. 
 
-
-
-
-
-Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far, and give the dimension (rows x columns) of the resulting dataset. Are these data tidy?
-
-Answer the following questions using these data:
-
-How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St A/B/C/D; 125st 1; 125st 4/5); the distinct function may be useful here.
-How many stations are ADA compliant?
-What proportion of station entrances / exits without vending allow entrance?
-Reformat data so that route number and route name are distinct variables. How many distinct stations serve the A train? How many are ADA compliant?
