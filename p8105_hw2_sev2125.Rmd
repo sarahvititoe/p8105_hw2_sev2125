@@ -66,3 +66,32 @@ mta %>%
 
 38.7% of all station etrances without a vending machine allow entrances. 
 
+*"Reformat data so that route number and route name are distinct variables."*
+```{r}
+mta_tidy <- mta %>%
+  gather(key = route_number, value = route_name, starts_with("route")) %>%
+  separate(route_number, into = c("delete", "route_number"), sep = 5) %>%
+  select(-delete) %>% 
+  select(line, station_name, route_number, route_name, ada, everything()) 
+```
+
+Here, we gathered the repetative route variables, and gathered them so that the key was the route number, and the value was the route name. Then, we split the route number so that it would be atomic and contain only the number, and not the word "route" with the number. From there, I dropped my dummy variable that contained the word "route" from splitting it off of route_number, and ordered my dataframe so that important variables would appear first. 
+
+*"How many distinct subway stations serve the A train?"*
+```{r}
+mta_tidy %>%
+  select(line, station_name, route_name, ada) %>% 
+  filter(route_name == "A") %>%
+  n_distinct()
+```
+
+There are 60 distinct stations that serve the A train.
+
+```{r}
+mta_tidy %>%
+  select(line, station_name, route_name, ada) %>% 
+  filter(route_name == "A" & ada == TRUE) %>%
+  n_distinct()
+```
+
+There are 17 distinct A train stations that are ADA accessible. 
