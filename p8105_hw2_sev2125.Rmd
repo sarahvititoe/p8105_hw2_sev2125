@@ -60,8 +60,8 @@ mta %>%
   filter(vending == "NO") %>% 
   select(line, station_name, entry) %>% 
   distinct() %>% 
-  summarise(prop = mean(entry))
-
+  summarise(proportion = mean(entry)) %>%
+  knitr::kable()
 ```
 
 38.7% of all station etrances without a vending machine allow entrances. 
