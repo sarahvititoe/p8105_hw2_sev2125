@@ -95,3 +95,51 @@ mta_tidy %>%
 ```
 
 There are 17 distinct A train stations that are ADA accessible. 
+
+### Problem 2: Mr. Trash Wheel 
+
+Read in and clean Mr.Trash Wheel dataset. Omit columns containing notes, use reasonable variable names, omit rows that do not include dupster-specific data, and round the number of sports_balls.
+
+```{r}
+mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = "Mr. Trash Wheel", range = "A2:N258") %>% 
+  janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>% 
+  mutate(sports_balls = as.integer(round(sports_balls)))
+```
+
+Read in and clean the 2016 and 2017 precipitation data. 
+```{r}
+precip_16 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "2016 Precipitation", range = "A2:B14") %>% 
+  janitor::clean_names() %>% 
+  rename(precip_total = total) %>% 
+  mutate(year = "2016") %>% 
+  select(year, month, precip_total)
+
+precip_17 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "2017 Precipitation", range = "A2:B14") %>% 
+  janitor::clean_names() %>% 
+  rename(precip_total = total) %>% 
+  mutate(year = "2017") %>% 
+  select(year, month, precip_total)
+```
+
+Join and convert numeric month to month name. 
+```{r}
+months <- tibble(
+  abbrv = c(1:12), 
+  month_name = month.name
+)
+
+precip <- precip_16 %>% 
+  union(precip_17) %>% 
+  left_join(months, by = c("month" = "abbrv")) %>% 
+  select(month_name, year, precip_total) %>% 
+  rename(month = month_name)
+  
+rm(months)
+rm(precip_16)
+rm(precip_17)
+```
+
+In our Mr. Trash Wheel dataframe, we see that we have `r nrow(mrtrash)` observations and `r ncol(mrtrash)` columns. For each dumpster, we can see when the dumpster was run, the volume and weight of the trash it collected, and a count of the types of trash collected. For our precipitation data, we have `r nrow(precip)` months of collected data, and `r ncol(precip)` variables recorderd. We can see the month and year where precipitation were recorded, along with the precipitation total. 
+
+For the year `r precip %>% filter(year == 2017) %>% group_by(year) %>% summarise(sum(precip_total, na.rm = TRUE))` inches of rain were recorded. The median number of sports balls collected per day by Mr. Trash Wheel over the course of 2016 was  `r mrtrash %>% filter(year == 2016) %>% group_by(year) %>%  summarise(median(sports_balls)) %>%  select(-year)`.
