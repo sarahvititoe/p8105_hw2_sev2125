@@ -146,3 +146,58 @@ In our Mr. Trash Wheel dataframe, we see that we have `r nrow(mrtrash)` observat
 *"Calculate the total precipitation in 2017 and the median sports balls in 2016."*
 
 For the year `r precip %>% filter(year == 2017) %>% group_by(year) %>% summarise(sum(precip_total, na.rm = TRUE))` inches of rain were recorded. The median number of sports balls collected per day by Mr. Trash Wheel over the course of 2016 was  `r mrtrash %>% filter(year == 2016) %>% group_by(year) %>%  summarise(median(sports_balls)) %>%  select(-year)`.
+
+### Question 3: Overall Health 
+
+*First, let's install the p8105 dataset package.*
+```{r cache = TRUE}
+devtools::install_github("p8105/p8105.datasets")
+```
+
+*Load in BRFSS dataset.*
+```{r}
+library(p8105.datasets)
+data("brfss_smart2010")
+```
+
+*Clean names, focus on overall health, drop irrelevant variables, structure data so response types are variables, and create a new variable showing the proportion of responses that were excellend or very good*
+```{r}
+brfss <- brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health") %>% 
+  select(-class, -topic, -question, -sample_size) %>% 
+  select(-c(confidence_limit_low:geo_location)) %>% 
+  spread(key = response, value = data_value) %>% 
+  janitor::clean_names() %>% 
+  mutate(excel_vgood = excellent + very_good) %>% 
+  separate(locationdesc, into = c("delete", "met_area"), sep = " - ") %>% 
+  select(-delete) %>% 
+  mutate_at(vars(locationabbr, met_area), funs(tolower))
+```
+
+Our variable with the proportion of respondants who are in excellent or very good health is called "excel_vgood". I also cleaned up the locationdesc name, and renamed it "met_area", and made all character variables lowercase. 
+
+
+*How many unique locations are included in the dataset?* 
+
+There are `r brfss %>% select(locationabbr, met_area) %>% n_distinct()` unique locations in our dataset. 
+
+
+*Is every state represented?* 
+
+First, we should check to see if there are any non-states, and if so, exclude them from the dataset before counting the number of states in our dataset. Let's use the state.abb and state.name functions in R to build a tibble of all our our states, so we can compare our BRFSS data to our states tibble. 
+
+```{r}
+states <- tibble(
+  abbr = tolower(state.abb),
+  name = state.name
+)
+```
+
+`r ifelse(brfss %>% select(locationabbr) %>%  filter(locationabbr != "dc") %>% n_distinct() >= 50, "We have all", "We only have")` `r brfss %>% select(locationabbr) %>% filter(locationabbr != "dc") %>% n_distinct()` states represented, plus `r brfss %>% select(locationabbr) %>% distinct() %>% anti_join(states, by = c("locationabbr" = "abbr")) %>% toupper()`.
+
+*What state is observed the most?*
+
+`r brfss %>% select(locationabbr) %>% group_by(locationabbr) %>% tally() %>% top_n(1) %>% left_join(states, by = c("locationabbr" = "abbr")) %>% select(name)` is the most observed state, with `r brfss %>% select(locationabbr) %>% group_by(locationabbr) %>% tally() %>% top_n(1) %>% select(n)` selected metropolitan areas in the study. 
+
+
