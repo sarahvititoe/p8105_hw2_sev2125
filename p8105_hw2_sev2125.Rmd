@@ -100,7 +100,7 @@ There are `r mta_tidy %>% select(line, station_name, route_name, ada) %>% filter
 *"Read in and clean Mr.Trash Wheel dataset. Omit columns containing notes, use reasonable variable names, omit rows that do not include dupster-specific data, and round the number of sports balls."*
 
 ```{r}
-mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = "Mr. Trash Wheel", range = "A2:N258") %>% 
+mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",sheet = "Mr. Trash Wheel", range = "A2:N258") %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>% 
   mutate(sports_balls = as.integer(round(sports_balls)))
@@ -108,13 +108,13 @@ mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xls
 
 *"Read in and clean the 2016 and 2017 precipitation data."*
 ```{r}
-precip_16 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "2016 Precipitation", range = "A2:B14") %>% 
+precip_16 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "2016 Precipitation", range = "A2:B14") %>% 
   janitor::clean_names() %>% 
   rename(precip_total = total) %>% 
   mutate(year = "2016") %>% 
   select(year, month, precip_total)
 
-precip_17 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "2017 Precipitation", range = "A2:B14") %>% 
+precip_17 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "2017 Precipitation", range = "A2:B14") %>% 
   janitor::clean_names() %>% 
   rename(precip_total = total) %>% 
   mutate(year = "2017") %>% 
