@@ -39,7 +39,7 @@ mta %>%
   n_distinct()
 ```
 
-We have 684 unique stations. 
+We have `r mta %>% group_by(line, station_name) %>% n_distinct()` unique stations. 
 
 
 *"How many stations are ADA compliant?"*
@@ -51,7 +51,7 @@ mta %>%
   n_distinct() 
 ```
 
-Only 84 of those stations are ADA compliant. :(
+Only `r mta %>% select(line, station_name, ada) %>% group_by(line, station_name) %>% filter(ada == TRUE) %>% n_distinct()` of those stations are ADA compliant. :(
 
 *"What proportion of station entrances / exits without vending allow entrance?"*"
 
@@ -60,11 +60,10 @@ mta %>%
   filter(vending == "NO") %>% 
   select(line, station_name, entry) %>% 
   distinct() %>% 
-  summarise(proportion = mean(entry)) %>%
-  knitr::kable()
+  summarise(proportion = mean(entry))
 ```
 
-38.7% of all station etrances without a vending machine allow entrances. 
+The proportion of all station etrances without a vending machine allow entrances is `r mta %>% filter(vending == "NO") %>% select(line, station_name, entry) %>% distinct() %>% summarise(proportion = mean(entry))`. 
 
 *"Reformat data so that route number and route name are distinct variables."*
 ```{r}
@@ -85,7 +84,7 @@ mta_tidy %>%
   n_distinct()
 ```
 
-There are 60 distinct stations that serve the A train.
+There are `r mta_tidy %>% select(line, station_name, route_name, ada) %>% filter(route_name == "A") %>% n_distinct()` distinct stations that serve the A train.
 
 ```{r}
 mta_tidy %>%
@@ -94,11 +93,11 @@ mta_tidy %>%
   n_distinct()
 ```
 
-There are 17 distinct A train stations that are ADA accessible. 
+There are `r mta_tidy %>% select(line, station_name, route_name, ada) %>% filter(route_name == "A" & ada == TRUE) %>% n_distinct()` distinct A train stations that are ADA accessible. 
 
 ### Problem 2: Mr. Trash Wheel 
 
-Read in and clean Mr.Trash Wheel dataset. Omit columns containing notes, use reasonable variable names, omit rows that do not include dupster-specific data, and round the number of sports_balls.
+*"Read in and clean Mr.Trash Wheel dataset. Omit columns containing notes, use reasonable variable names, omit rows that do not include dupster-specific data, and round the number of sports balls."*
 
 ```{r}
 mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = "Mr. Trash Wheel", range = "A2:N258") %>% 
@@ -107,7 +106,7 @@ mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xls
   mutate(sports_balls = as.integer(round(sports_balls)))
 ```
 
-Read in and clean the 2016 and 2017 precipitation data. 
+*"Read in and clean the 2016 and 2017 precipitation data."*
 ```{r}
 precip_16 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "2016 Precipitation", range = "A2:B14") %>% 
   janitor::clean_names() %>% 
@@ -122,7 +121,7 @@ precip_17 <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.x
   select(year, month, precip_total)
 ```
 
-Join and convert numeric month to month name. 
+*"Join and convert numeric month to month name."*
 ```{r}
 months <- tibble(
   abbrv = c(1:12), 
@@ -140,6 +139,10 @@ rm(precip_16)
 rm(precip_17)
 ```
 
+*"Write a paragraph about the data."*
+
 In our Mr. Trash Wheel dataframe, we see that we have `r nrow(mrtrash)` observations and `r ncol(mrtrash)` columns. For each dumpster, we can see when the dumpster was run, the volume and weight of the trash it collected, and a count of the types of trash collected. For our precipitation data, we have `r nrow(precip)` months of collected data, and `r ncol(precip)` variables recorderd. We can see the month and year where precipitation were recorded, along with the precipitation total. 
+
+*"Calculate the total precipitation in 2017 and the median sports balls in 2016."*
 
 For the year `r precip %>% filter(year == 2017) %>% group_by(year) %>% summarise(sum(precip_total, na.rm = TRUE))` inches of rain were recorded. The median number of sports balls collected per day by Mr. Trash Wheel over the course of 2016 was  `r mrtrash %>% filter(year == 2016) %>% group_by(year) %>%  summarise(median(sports_balls)) %>%  select(-year)`.
