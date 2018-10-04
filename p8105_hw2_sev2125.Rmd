@@ -15,11 +15,7 @@ library(tidyverse)
 ```
 
 ### Problem 1: NYC Subways 
-*"This problem focuses on NYC Transit data; in particular, this CSV file contains information related to each entrance and exit for each subway station in NYC."*
-
-*"Read and clean the data; retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance." *
-
-*"Convert the entry variable from character (YES vs NO) to a logical variable (the ifelse or recode function may be useful)."*
+* This problem focuses on NYC Transit data; in particular, this CSV file contains information related to each entrance and exit for each subway station in NYC. Read and clean the data; retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. Convert the entry variable from character (YES vs NO) to a logical variable (the ifelse or recode function may be useful).*
 
 ```{r}
 mta <- read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
@@ -31,7 +27,7 @@ mta <- read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
 
 In the code above, I read in my file name using the read_csv function. I piped my result into the janitor package, which helps me clean up the names a bit. Then, I selected the variables we were interested in. We have the line, information about the station (it's name, latitude, and longitude), all of the routes served by the station, a logical variable that tells us whether there is an entrance (as opposed to just an exit), what the entrance type is (e.g. stairs, or terrifying elevator on 168th), and whether than entrance is ADA compliant. I had to coerce the entry variable to be logical, by using an ifelse statement. We have `r ncol(mta)` columns and `r nrow(mta)` rows in our tibble. This dataset is definitely not tidy, since we have a ton of rows with the different routes spread out in various columns. 
 
-*"How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St A/B/C/D; 125st 1; 125st 4/5); the distinct function may be useful here."*
+** Q: How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St A/B/C/D; 125st 1; 125st 4/5); the distinct function may be useful here.**
 
 ```{r}
 mta %>%
@@ -39,10 +35,10 @@ mta %>%
   n_distinct()
 ```
 
-We have `r mta %>% group_by(line, station_name) %>% n_distinct()` unique stations. 
+A: We have `r mta %>% group_by(line, station_name) %>% n_distinct()` unique stations. 
 
 
-*"How many stations are ADA compliant?"*
+**Q: How many stations are ADA compliant?"**
 ```{r}
 mta %>% 
   select(line, station_name, ada) %>%
@@ -51,9 +47,9 @@ mta %>%
   n_distinct() 
 ```
 
-Only `r mta %>% select(line, station_name, ada) %>% group_by(line, station_name) %>% filter(ada == TRUE) %>% n_distinct()` of those stations are ADA compliant. :(
+A: Only `r mta %>% select(line, station_name, ada) %>% group_by(line, station_name) %>% filter(ada == TRUE) %>% n_distinct()` of those stations are ADA compliant. :(
 
-*"What proportion of station entrances / exits without vending allow entrance?"*"
+**Q:What proportion of station entrances / exits without vending allow entrance?"**
 
 ```{r}
 mta %>%
@@ -63,9 +59,9 @@ mta %>%
   summarise(proportion = mean(entry))
 ```
 
-The proportion of all station etrances without a vending machine allow entrances is `r mta %>% filter(vending == "NO") %>% select(line, station_name, entry) %>% distinct() %>% summarise(proportion = mean(entry))`. 
+A: The proportion of all station etrances without a vending machine allow entrances is `r mta %>% filter(vending == "NO") %>% select(line, station_name, entry) %>% distinct() %>% summarise(proportion = mean(entry))`. 
 
-*"Reformat data so that route number and route name are distinct variables."*
+*Reformat data so that route number and route name are distinct variables.*
 ```{r}
 mta_tidy <- mta %>%
   gather(key = route_number, value = route_name, starts_with("route")) %>%
@@ -76,7 +72,7 @@ mta_tidy <- mta %>%
 
 Here, we gathered the repetative route variables, and gathered them so that the key was the route number, and the value was the route name. Then, we split the route number so that it would be atomic and contain only the number, and not the word "route" with the number. From there, I dropped my dummy variable that contained the word "route" from splitting it off of route_number, and ordered my dataframe so that important variables would appear first. 
 
-*"How many distinct subway stations serve the A train?"*
+**Q: How many distinct subway stations serve the A train?"**
 ```{r}
 mta_tidy %>%
   select(line, station_name, route_name, ada) %>% 
@@ -84,7 +80,9 @@ mta_tidy %>%
   n_distinct()
 ```
 
-There are `r mta_tidy %>% select(line, station_name, route_name, ada) %>% filter(route_name == "A") %>% n_distinct()` distinct stations that serve the A train.
+A: There are `r mta_tidy %>% select(line, station_name, route_name, ada) %>% filter(route_name == "A") %>% n_distinct()` distinct stations that serve the A train.
+
+**Q: How many distinct A trains are ADA accessible?**
 
 ```{r}
 mta_tidy %>%
@@ -93,14 +91,14 @@ mta_tidy %>%
   n_distinct()
 ```
 
-There are `r mta_tidy %>% select(line, station_name, route_name, ada) %>% filter(route_name == "A" & ada == TRUE) %>% n_distinct()` distinct A train stations that are ADA accessible. 
+A: There are `r mta_tidy %>% select(line, station_name, route_name, ada) %>% filter(route_name == "A" & ada == TRUE) %>% n_distinct()` distinct A train stations that are ADA accessible. 
 
 ### Problem 2: Mr. Trash Wheel 
 
 *"Read in and clean Mr.Trash Wheel dataset. Omit columns containing notes, use reasonable variable names, omit rows that do not include dupster-specific data, and round the number of sports balls."*
 
 ```{r}
-mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",sheet = "Mr. Trash Wheel", range = "A2:N258") %>% 
+mrtrash <- readxl::read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",sheet = "Mr. Trash Wheel", range = "A2:N336") %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>% 
   mutate(sports_balls = as.integer(round(sports_balls)))
@@ -143,24 +141,24 @@ rm(precip_17)
 
 In our Mr. Trash Wheel dataframe, we see that we have `r nrow(mrtrash)` observations and `r ncol(mrtrash)` columns. For each dumpster, we can see when the dumpster was run, the volume and weight of the trash it collected, and a count of the types of trash collected. For our precipitation data, we have `r nrow(precip)` months of collected data, and `r ncol(precip)` variables recorderd. We can see the month and year where precipitation were recorded, along with the precipitation total. 
 
-*"Calculate the total precipitation in 2017 and the median sports balls in 2016."*
+**Q:Calculate the total precipitation in 2017 and the median sports balls in 2016.**
 
-For the year `r precip %>% filter(year == 2017) %>% group_by(year) %>% summarise(sum(precip_total, na.rm = TRUE))` inches of rain were recorded. The median number of sports balls collected per day by Mr. Trash Wheel over the course of 2016 was  `r mrtrash %>% filter(year == 2016) %>% group_by(year) %>%  summarise(median(sports_balls)) %>%  select(-year)`.
+A: For the year `r precip %>% filter(year == 2017) %>% group_by(year) %>% summarise(sum(precip_total, na.rm = TRUE))` inches of rain were recorded. The median number of sports balls collected per day by Mr. Trash Wheel over the course of 2016 was  `r mrtrash %>% filter(year == 2016) %>% group_by(year) %>%  summarise(median(sports_balls)) %>%  select(-year)`.
 
 ### Question 3: Overall Health 
 
-*First, let's install the p8105 dataset package.*
+First, let's install the p8105 dataset package.
 ```{r cache = TRUE}
 devtools::install_github("p8105/p8105.datasets")
 ```
 
-*Load in BRFSS dataset.*
+Load in BRFSS dataset.
 ```{r}
 library(p8105.datasets)
 data("brfss_smart2010")
 ```
 
-*Clean names, focus on overall health, drop irrelevant variables, structure data so response types are variables, and create a new variable showing the proportion of responses that were excellend or very good*
+Clean names, focus on overall health, drop irrelevant variables, structure data so response types are variables, and create a new variable showing the proportion of responses that were excellent or very good.
 ```{r}
 brfss <- brfss_smart2010 %>% 
   janitor::clean_names() %>% 
@@ -178,12 +176,13 @@ brfss <- brfss_smart2010 %>%
 Our variable with the proportion of respondants who are in excellent or very good health is called "excel_vgood". I also cleaned up the locationdesc name, and renamed it "met_area", and made all character variables lowercase. 
 
 
-*How many unique locations are included in the dataset?* 
+**Q: How many unique locations are included in the dataset?**
 
-There are `r brfss %>% select(locationabbr, met_area) %>% n_distinct()` unique locations in our dataset. 
+A: There are `r brfss %>% select(locationabbr, met_area) %>% n_distinct()` unique locations in our dataset. 
 
 
-*Is every state represented?* 
+
+**Q: Is every state represented?** 
 
 First, we should check to see if there are any non-states, and if so, exclude them from the dataset before counting the number of states in our dataset. Let's use the state.abb and state.name functions in R to build a tibble of all our our states, so we can compare our BRFSS data to our states tibble. 
 
@@ -194,10 +193,34 @@ states <- tibble(
 )
 ```
 
-`r ifelse(brfss %>% select(locationabbr) %>%  filter(locationabbr != "dc") %>% n_distinct() >= 50, "We have all", "We only have")` `r brfss %>% select(locationabbr) %>% filter(locationabbr != "dc") %>% n_distinct()` states represented, plus `r brfss %>% select(locationabbr) %>% distinct() %>% anti_join(states, by = c("locationabbr" = "abbr")) %>% toupper()`.
+A: `r ifelse(brfss %>% select(locationabbr) %>%  filter(locationabbr != "dc") %>% n_distinct() >= 50, "We have all", "We only have")` `r brfss %>% select(locationabbr) %>% filter(locationabbr != "dc") %>% n_distinct()` states represented, plus `r brfss %>% select(locationabbr) %>% distinct() %>% anti_join(states, by = c("locationabbr" = "abbr")) %>% toupper()`.
 
-*What state is observed the most?*
+**Q: What state is observed the most?**
 
-`r brfss %>% select(locationabbr) %>% group_by(locationabbr) %>% tally() %>% top_n(1) %>% left_join(states, by = c("locationabbr" = "abbr")) %>% select(name)` is the most observed state, with `r brfss %>% select(locationabbr) %>% group_by(locationabbr) %>% tally() %>% top_n(1) %>% select(n)` selected metropolitan areas in the study. 
+A: `r brfss %>% select(locationabbr) %>% group_by(locationabbr) %>% tally() %>% top_n(1) %>% left_join(states, by = c("locationabbr" = "abbr")) %>% select(name)` is the most observed state, with `r brfss %>% select(locationabbr) %>% group_by(locationabbr) %>% tally() %>% top_n(1) %>% select(n)` selected metropolitan areas in the study. 
 
+**Q: In 2002 ,what is the median of the Excellent response value?**
+
+A: In 2002, the median excellent response value was `r brfss %>% select(year, excellent) %>% group_by(year) %>% filter(year == "2002") %>% summarise(med = median(excellent, na.rm = TRUE)) %>% select(med)`.
+
+#### Plots
+**Create a Histogram**
+```{r}
+brfss %>% 
+  filter(year == "2002") %>% 
+  ggplot(aes(x = excellent)) + 
+    geom_histogram(bins = 20) + 
+    ggtitle("Histogram of Excellents in 2012")
+```
+
+**Create Scatterplot**
+```{r}
+brfss %>% 
+  select(year, met_area, excellent) %>% 
+  filter(met_area == "new york county" | met_area == "queens county") %>%
+  ggplot(aes(x = year, y = excellent, color = met_area)) + 
+    geom_point(alpha = 0.4) +
+    geom_smooth(se = FALSE, method = lm) +
+    ggtitle("Scatterplot of Excellent Health Rating in Manhattan and Queens")
+```
 
